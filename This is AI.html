@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BELONG TOGETHER</title>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1500px;
+    }
+
+    div {
+        transform-style: preserve-3d;
+    }
+
+    .word-box,
+    .word-box .word {
+        position: absolute;
+        animation: rotY 0s linear infinite;
+        animation-duration: var(--animation-duration);
+        animation-delay: var(--animation-delay);
+    }
+
+    .word-box {
+        margin-top: var(--margin-top);
+    }
+
+    .word-box .word {
+        margin-left: var(--margin-left);
+        animation-duration: reverse;
+    }
+
+    @keyframes rotY {
+        to {
+            transform: rotateY(360deg);
+        }
+
+        0% {
+            color: #0e3742;
+        }
+
+        50% {
+            color: #fff;
+            text-shadow: 0 0 10px #03bcf4;
+        }
+    }
+</style>
+<style>
+    canvas {
+        background-image: linear-gradient(180deg, #000000 0%,
+                #0a0a0a 40%, #1e1d1d 60%, #5b5a5a 100%);
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+
+
+    h1 {
+        width: inherit;
+        height: 50px;
+        justify-content: center;
+        display: flex;
+        position: fixed;
+        letter-spacing: 15px;
+        text-transform: uppercase;
+        text-align: right;
+        font: 30px Tahoma,Helvetica,Arial,'宋体',sans-serif;
+        line-height: 0.9em;
+        outline: none;
+        -webkit-box-reflect: below 1px linear-gradient(transparent, #0008);
+        animation: animate 6s linear infinite;
+    }
+
+    @keyframes animate {
+        5% {
+            color: #0e3742;
+        }
+
+        50% {
+            color: #fff;
+            text-shadow: 0 0 10px #03bcf4;
+        }
+    }
+</style>
+
+<body>
+    <canvas id="Background"></canvas>
+    <h1 contenteditable="true">this is ai</h1>
+    <div class="container"></div>
+</body>
+<script>
+
+</script>
+<script>
+    var Background = document.getElementById('Background');
+    const BackgroundCtx = Background.getContext('2d');
+    let scale;
+    let width;
+    let height;
+    var lineGradient;//color gradient
+    var Start; //setinterval name,fucking lose
+    const h1 = document.querySelector('h1')
+    window.onresize = resize;
+    function resize() {
+        scale = window.devicePixelRatio || 1;
+        width = window.innerWidth * scale;
+        height = window.innerHeight * scale;
+        Background.width = width;
+        Background.height = height;
+        h1property();
+    }//get the fixd e,size
+    resize();
+    function h1property() {//holy shit event
+        h = window.innerHeight;
+        w = window.innerWidth;
+        h1.style.top = `${h / 2 - 30}px`;
+        //  h1.style.left = `${w / 2 - 150}px`;
+    } h1property();
+    function mouseenter() {
+        h1.textContent = `happy to you`;
+        console.log('l');
+    }
+    h1.onmouseenter = mouseenter;
+    function mouseleave() {
+        h1.textContent = `this is ai`;
+        console.log('u')
+    }
+    h1.onmouseleave = mouseleave;
+    class Star {//x,y,r,canvastext
+        constructor(x, y, r, ctx) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            this.ctx = ctx;
+        }
+        Draw() {
+            this.ctx.fillStyle = 'rgba(255,255,255,0.5)';//Fucking damn Alpha
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+            this.ctx.closePath();
+            this.ctx.fill();
+        }
+        Move() {
+            this.x += 1.0;
+            if (this.x > width || this.y > height || this.y < 0) {
+                this.x = Math.random() * width * 1.2 - 0.2 * width;
+                this.y = Math.random() * height * 1.2 - 0.2 * height;
+            }
+            this.Draw();
+        }
+    }
+    class Meteor extends Star {
+        constructor(x, y, r, ctx, angle, speed) {
+            super(x, y, r, ctx);
+            this.angle = angle;
+            this.speed = speed;
+        }
+        Draw() {
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.1 + 0.9})`;
+            this.ctx.rotate(this.angle);
+            this.ctx.beginPath();
+            this.ctx.lineTo(this.x, this.y, this.x + 4, this.y + 1)
+            this.ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.rotate(-this.angle);//sweeping
+        }
+        Move() {
+            this.x += 1 * this.speed;
+            this.y += 0.25 * this.speed;
+            if (this.x > width * 1.4 || this.y > height * 1.4) {
+                this.x = Math.random() * width / 3;
+                this.y = -2 * height + Math.random() * height * 2.4;
+            }
+            this.Draw();
+        }
+    }
+    const star_amount = 300;
+    const meteor_amount = 50;
+    let star = [];//star array
+    let meteor = [];//meteor arry
+    function InitStar() {
+        for (let i = 0; i < star_amount; i++) {
+            star[i] = new Star(Math.random() * width, Math.random() * height, 2 + Math.random() * 2, BackgroundCtx);
+        }
+    }
+    function InitMeteor() {
+        for (let i = 0; i < meteor_amount; i++) {
+            meteor[i] = new Meteor(Math.random() * width / 2, -2 * height + Math.random() * height * 2.4, Math.random() * 2 + 2, BackgroundCtx, Math.PI / 7, Math.random() * 0.5 + 1);
+        }
+    }
+    //Array initialization
+    function Init() {
+        InitStar();
+        InitMeteor();
+        Start = setInterval(render, 50);//set frameRate
+    }//initialization
+    function createLinearGradient() {
+        lineGradient = BackgroundCtx.createLinearGradient(width, 0, width, height)
+        lineGradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+        lineGradient.addColorStop(0.4, 'rgba(10, 10, 10, 0.4)');
+        lineGradient.addColorStop(0.6, 'rgba(30, 29, 29, 0.4)');
+        lineGradient.addColorStop(1, 'rgba(91, 90, 90, 0.4)');
+    }
+    createLinearGradient();
+    function render() {
+        BackgroundCtx.fillStyle = lineGradient;
+        BackgroundCtx.fillRect(0, 0, width, height);
+        let odd = 0;
+        star.forEach(v => {
+            odd = (odd + 1) % 2;
+            v.r = Math.random() * 1 + 2;//make flash...meybe also requires Alpha? 
+            if (odd % 2 === 0) v.y -= 0.3;
+            else v.y += 0.3;
+            v.Move();
+        });
+        meteor.forEach(v => {
+            for (let index = 0; index < 28; index++) {
+                v.Move();
+            }
+        })
+    }
+    Init();
+</script>
+<script>
+    var words = [
+        '伤心桥下春波绿',
+        '曾是惊鸿照影来',
+        '当年明月在',
+        '曾照彩云归',
+        '归去来兮',
+        '真堪偕隐',
+        '画船听雨眠',
+        '愿为江水',
+        '与君重逢',
+        '一日不见兮',
+        '思之若狂',
+        '偷偷表白一个姓徐的女孩',
+        '天天趴在桌子上偷偷看你',
+        '柳絮空缱绻',
+        '南风知不知',
+        '我见青山多妩媚',
+        '料青山见我也应如是',
+        '取次花丛懒回顾',
+        '半缘修道半缘君',
+        '三笑徒然当一痴',
+        '人生若只如初见',
+        '我余光中都是你',
+        '人生自是有情痴',
+        '此恨不关风与月',
+        '因为你我多少还有点温暖',
+        '春蚕到死丝方尽',
+        '蜡炬成灰泪始干',
+        '今夜何夕',
+        '见此良人',
+        '愿我如星君如月',
+        '夜夜流光相皎洁',
+        '情不所起',
+        '一往而深',
+        '玲珑骰子安红豆',
+        '入骨相思知不知',
+        '多情只有春庭月',
+        '尤为离人照落花',
+        '若有知音见采',
+        '不辞唱遍阳春',
+        '休言半纸无多重',
+        '万斛离愁尽耐担',
+        '夜月一帘幽梦',
+        '和光同尘',
+        '杳霭流玉',
+        '月落星沉',
+        '霞姿月韵',
+        '喜上眉梢',
+        '醉后不知天在水',
+        '满船星梦压星河',
+        '落花人独立',
+        '微雨燕双飞',
+        '掬水月在手',
+        '弄花香满衣',
+        '夜深忽梦少年事',
+        '唯梦闲人不梦君',
+        '垆边人似月',
+        '皓腕凝霜雪',
+        '众里嫣然通一顾',
+        '人间颜色如尘土',
+        '若非群玉山头见',
+        '会向瑶台月下逢',
+        '沉鱼落雁鸟惊喧',
+        '羞花闭月花愁颤',
+        '解释春风无限恨',
+        '沉香亭北倚阑干'
+    ];
+    function randomNum(min, max) {
+        var num = (Math.random() * (max - min + 1) + min).toFixed(2);
+        return num;
+    }
+    function init() {
+        let container = document.querySelector('.container');
+        let f = document.createDocumentFragment();
+        words.forEach(w => {
+            let word_box = document.createElement('div');//Texrbox
+            let word = document.createElement('div');//Text
+            word.innerText = w;
+            word.classList.add('word');
+            word.style.color = '#BAABDA';
+            word.style.fontFamily = '楷体';
+            word.style.fontSize = '20px'
+
+            word_box.classList.add('word-box');
+            word_box.style.setProperty("--margin-top", randomNum(-40, 20) + 'vh');
+            word_box.style.setProperty("--margin-left", randomNum(6, 35) + 'vw');
+            word_box.style.setProperty("--animation-duration", randomNum(8, 20) + 's');
+            word_box.style.setProperty("--animation-delay", randomNum(-20, 0) + 's');
+
+            word_box.appendChild(word);
+            f.appendChild(word_box);
+
+
+        })
+        container.appendChild(f);
+    }
+    window.addEventListener('load', init);
+
+
+</script>
+
+</html>
